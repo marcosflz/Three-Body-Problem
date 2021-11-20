@@ -1,0 +1,190 @@
+Clear["Global`*"]
+
+(*User Preferences about the system*)
+
+G = 1;
+
+mEarth = 3;
+mMoon = 5;
+mSun = 7;
+
+rSun = 0.5;
+rEarth = 0.5;
+rMoon = 0.5;
+
+tInt = 1000;
+
+(*Initial Conditions f={x,y,z}*)
+
+moonPos = {2, 8, 1};
+moonVel = {0, 0.5, 0};
+
+earthPos = {4, 2, 3};
+earthVel = {0, -0.5, 0};
+
+sunPos = {3, 6, 8};
+sunVel = {0, 0, 0};
+
+(*Cinematic Equations*)
+
+absoluteDistEarthMoon = (((earthPosx[t] - 
+       moonPosx[t])^2 + (earthPosy[t] - 
+       moonPosy[t])^2 + (earthPosz[t] - moonPosz[t])^2)^(1/2));
+absoluteDistEarthSun = (((earthPosx[t] - 
+       sunPosx[t])^2 + (earthPosy[t] - sunPosy[t])^2 + (earthPosz[t] -
+        sunPosz[t])^2)^(1/2));
+absoluteDistMoonSun = (((moonPosx[t] - sunPosx[t])^2 + (moonPosy[t] - 
+       sunPosy[t])^2 + (moonPosz[t] - sunPosz[t])^2)^(1/2));
+
+
+
+earthSsunSmoon = {
+   moonPosx''[
+     t] == ((G*mEarth)/
+        absoluteDistEarthMoon^2)*((earthPosx[t] - moonPosx[t])/
+        absoluteDistEarthMoon) + ((G*mSun)/
+        absoluteDistMoonSun^2)*((sunPosx[t] - moonPosx[t])/
+        absoluteDistMoonSun),
+   
+   moonPosy''[
+     t] == ((G*mEarth)/
+        absoluteDistEarthMoon^2)*((earthPosy[t] - moonPosy[t])/
+        absoluteDistEarthMoon) + ((G*mSun)/
+        absoluteDistMoonSun^2)*((sunPosy[t] - moonPosy[t])/
+        absoluteDistMoonSun),
+   
+   moonPosz''[
+     t] == ((G*mEarth)/
+        absoluteDistEarthMoon^2)*((earthPosz[t] - moonPosz[t])/
+        absoluteDistEarthMoon) + ((G*mSun)/
+        absoluteDistMoonSun^2)*((sunPosz[t] - moonPosz[t])/
+        absoluteDistMoonSun)
+   };
+
+
+moonSsunSearth = {
+   earthPosx''[
+     t] == ((G*mMoon)/
+        absoluteDistEarthMoon^2)*(-(earthPosx[t] - moonPosx[t])/
+        absoluteDistEarthMoon) + ((G*mSun)/
+        absoluteDistEarthSun^2)*((sunPosx[t] - earthPosx[t])/
+        absoluteDistEarthSun),
+   
+   earthPosy''[
+     t] == ((G*mMoon)/
+        absoluteDistEarthMoon^2)*(-(earthPosy[t] - moonPosy[t])/
+        absoluteDistEarthMoon) + ((G*mSun)/
+        absoluteDistEarthSun^2)*((sunPosy[t] - earthPosy[t])/
+        absoluteDistEarthSun),
+   
+   earthPosz''[
+     t] == ((G*mMoon)/
+        absoluteDistEarthMoon^2)*(-(earthPosz[t] - moonPosz[t])/
+        absoluteDistEarthMoon) + ((G*mSun)/
+        absoluteDistEarthSun^2)*((sunPosz[t] - earthPosz[t])/
+        absoluteDistEarthSun)
+   };
+
+
+earthSmoonSsun = {
+   sunPosx''[
+     t] == ((G*mEarth)/
+        absoluteDistEarthSun^2)*(-(sunPosx[t] - earthPosx[t])/
+        absoluteDistEarthSun) + ((G*mMoon)/
+        absoluteDistMoonSun^2)*(-(sunPosx[t] - moonPosx[t])/
+        absoluteDistMoonSun),
+   
+   sunPosy''[
+     t] == ((G*mEarth)/
+        absoluteDistEarthSun^2)*(-(sunPosy[t] - earthPosy[t])/
+        absoluteDistEarthSun) + ((G*mMoon)/
+        absoluteDistMoonSun^2)*(-(sunPosy[t] - moonPosy[t])/
+        absoluteDistMoonSun),
+   
+   sunPosz''[
+     t] == ((G*mEarth)/
+        absoluteDistEarthSun^2)*(-(sunPosz[t] - earthPosz[t])/
+        absoluteDistEarthSun) + ((G*mMoon)/
+        absoluteDistMoonSun^2)*(-(sunPosz[t] - moonPosz[t])/
+        absoluteDistMoonSun)
+   };
+
+
+(*Initial Conditions*)
+
+condInit = {
+   
+   moonPosx[0] == moonPos[[1]],
+   moonPosy[0] == moonPos[[2]],
+   moonPosz[0] == moonPos[[3]],
+   
+   moonPosx'[0] == moonVel[[1]],
+   moonPosy'[0] == moonVel[[2]],
+   moonPosz'[0] == moonVel[[3]],
+   
+   earthPosx[0] == earthPos[[1]],
+   earthPosy[0] == earthPos[[2]],
+   earthPosz[0] == earthPos[[3]],
+   
+   earthPosx'[0] == earthVel[[1]],
+   earthPosy'[0] == earthVel[[2]],
+   earthPosz'[0] == earthVel[[3]],
+   
+   sunPosx[0] == sunPos[[1]],
+   sunPosy[0] == sunPos[[2]],
+   sunPosz[0] == sunPos[[3]],
+   
+   sunPosx'[0] == sunVel[[1]],
+   sunPosy'[0] == sunVel[[2]],
+   sunPosz'[0] == sunVel[[3]]
+   
+   
+   };
+
+{moonPosxt, moonPosyt, moonPoszt, earthPosxt, earthPosyt, earthPoszt, 
+   sunPosxt, sunPosyt, sunPoszt} = NDSolveValue[
+   {earthSsunSmoon, moonSsunSearth, earthSmoonSsun, condInit},
+   {moonPosx, moonPosy, moonPosz, earthPosx, earthPosy, earthPosz, 
+    sunPosx, sunPosy, sunPosz},
+   {t, 0, tInt}
+   ];
+
+sunMotion[{x_, y_, z_}, t_] = {sunPosxt[t], sunPosyt[t], sunPoszt[t]};
+earthMotion[{x_, y_, z_}, t_] = {earthPosxt[t], earthPosyt[t], 
+   earthPoszt[t]};
+moonMotion[{x_, y_, z_}, t_] = {moonPosxt[t], moonPosyt[t], 
+   moonPoszt[t]};
+
+vMoon[t_] = (moonPosxt'[t]^2 + moonPosyt'[t]^2 + moonPoszt'[t]^2)^(1/
+  2);
+vEarth[t_] = (earthPosxt'[t]^2 + earthPosyt'[t]^2 + 
+    earthPoszt'[t]^2)^(1/2);
+vSun[t_] = (sunPosxt'[t]^2 + sunPosyt'[t]^2 + sunPoszt'[t]^2)^(1/2);
+
+Animate[
+ 
+ sunTrace = 
+  ParametricPlot3D[sunMotion[{x, y, z}, t], {t, 0, time}, 
+   PlotStyle -> {Orange, Thick}];
+ earthTrace = 
+  ParametricPlot3D[earthMotion[{x, y, z}, t], {t, 0, time}, 
+   PlotStyle -> {Blue, Thick}];
+ moonTrace = 
+  ParametricPlot3D[moonMotion[{x, y, z}, t], {t, 0, time}, 
+   PlotStyle -> {Black, Thick}];
+ 
+ sun3D = Graphics3D[
+   Sphere[{sunPosxt[time], sunPosyt[time], sunPoszt[time]}, rSun]];
+ earth3D = 
+  Graphics3D[
+   Sphere[{earthPosxt[time], earthPosyt[time], earthPoszt[time]}, 
+    rEarth]];
+ moon3D = 
+  Graphics3D[
+   Sphere[{moonPosxt[time], moonPosyt[time], moonPoszt[time]}, rMoon]];
+ 
+ Show[{sunTrace, moonTrace, earthTrace, earth3D, moon3D, sun3D}, 
+  PlotPoints -> 100,
+  PlotRange -> All,
+  Axes -> False],
+ {time, 0.01, Infinity}, RefreshRate -> 60, AnimationRunning -> False]
